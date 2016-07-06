@@ -1,0 +1,122 @@
+<% builder.define :form, form_html: { } do |options| %>
+  <%= builder.form_tag record, options do |form| %>
+    <%= builder.render :errors if record.errors.present? %>
+    <%= yield builder %>
+  <% end %>
+<% end %>
+
+<% builder.define :errors, errors_html: { class: "alert alert-danger" } do |options| %>
+  <%= content_tag :div, options[:errors_html] do %>
+    <h5>Uh Oh! There were some errors in your entry.</h5>
+    <ul>
+      <%= builder.render :error,
+                               collection: record.errors.full_messages,
+                               wrap_each: { tag: "li" }%>
+    </ul>
+  <% end %>
+<% end %>
+
+<% builder.define :error do |error| %>
+  <%= error %>
+<% end %>
+
+<% builder.define lambda {|field| field.name },
+                       collection: builder.fields,
+                       as: :text_field do |form, field_name, options| %>
+  <%= builder.render options[:as], form, field_name, options %>
+<% end %>
+
+<%# ------------------- FIELD TYPES ----------------------------- %>
+
+<% builder.define :text_field,
+                        wrapper_html: { class: "form-group" },
+                        input_html: { class: 'form-control' } do |form, field_name, options| %>
+  <%= content_tag :div, options[:wrapper_html] do %>
+    <%#= builder.render "#{field.name}_content" do %>
+      <%= builder.render :label, form, field_name, options %>
+      <%= form.text_field field_name, options[:input_html] %>
+    <%# end %>
+  <% end %>
+<% end %>
+
+<% builder.define :text_area,
+                        wrapper_html: { class: "form-group" },
+                        input_html: { rows: 5, class: 'form-control' } do |form, field_name, options| %>
+  <%= content_tag :div, options[:wrapper_html] do %>
+    <%#= builder.render "#{field.name}_content" do %>
+      <%= builder.render :label, form, field_name, options %>
+      <%= form.text_area :raw_data, options[:input_html] %>
+    <%# end %>
+  <% end %>
+<% end %>
+
+<% builder.define :hidden_field do |form, field_name, options| %>
+  <%= form.hidden_field field_name %>
+<% end %>
+
+<% builder.define :file_field,
+                        browse_button_html: {
+                          class: 'btn btn-info btn-medium',
+                          onclick: lambda { |field_name| "$('input[id=#{field_name}]').click(); return false;" }
+                        },
+                        file_field_html: {
+                          class: 'hidden',
+                          id: lambda { |field_name| "#{field_name}"},
+                          onchange: lambda { |field_name| "$('input[id=#{field_name}_text]').val($(this).val().replace('C:\\\\fakepath\\\\', ''));" }
+                        },
+                        wrapper_html: { class: "form-group" },
+                        input_html: {
+                          class: 'form-control',
+                          id: lambda { |field_name| "#{field_name}_text"},
+                          readonly: true,
+                          onclick: lambda { |field_name| "$('input[id=#{field_name}]').click(); return false;" },
+                          placeholder: "Click here or on 'Browse'"
+                        },
+                        browse_label: "Browse" do |form, field_name, options| %>
+  <%= content_tag :div, options[:wrapper_html] do %>
+    <%= builder.render :label, form, field_name, options %>
+    <div class="form-inline">
+      <%#= builder.render "#{field.name}_content" do %>
+        <%= form.file_field field_name, builder.call_each_hash_value_with_params(options[:file_field_html], field_name) %>
+        <%= form.text_field "#{field_name}_text", builder.call_each_hash_value_with_params(options[:input_html], field_name) %>
+        <%= link_to options[:browse_label], '#', builder.call_each_hash_value_with_params(options[:browse_button_html], field_name) %>
+      <%# end %>
+    </div>
+  <% end %>
+<% end %>
+
+<% builder.define :check_box,
+                        wrapper_html: { class: "checkbox" },
+                        input_html: {} do |form, field_name, options| %>
+  <%= content_tag :div, options[:wrapper_html] do %>
+    <%#= builder.render "#{field.name}_content" do %>
+      <%= form.label field_name, *builder.label_options(options) do %>
+        <%= form.check_box field_name, options[:input_html] %>
+        <%= options[:label] || field_name.to_s.titleize %>
+      <% end %>
+    <%# end %>
+  <% end %>
+<% end %>
+
+<% builder.define :label do |form, field_name, options| %>
+  <%= form.label field_name, *builder.label_options(options) %>
+<% end %>
+
+<% builder.define :submit,
+                        label: "Next",
+                        input_html: { class: 'btn btn-info btn-submit-top-margin' } do |form, field_name, options| %>
+  <br>
+  <div class="row">
+    <div class="col-xs-9">
+      By clicking the Next button, you agree to adhere to the
+      <%= link_to "Mobile Marketing Association Guidelines", "http://www.mmaglobal.com/files/bestpractices.pdf" %>
+    </div>
+    <div class="pull-right">
+      <%= form.submit options[:label], options[:input_html] %>
+    </div>
+  </div>
+<% end %>
+
+<%# ------------------- END OF FIELD TYPES ---------------------- %>
+
+<%= builder.render :form %>
