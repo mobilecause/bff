@@ -5,6 +5,7 @@
 Add this line to your application's Gemfile:
 
 ```ruby
+gem 'blocks', git: 'git@github.com:hunterae/blocks.git', branch: '4_0_0_wip'
 gem 'bff'
 ```
 
